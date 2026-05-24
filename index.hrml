@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>MONOPOLI STATISTIKA - 4 Pemain | 20 Soal | Penanganan Seri</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Poppins', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #0f2e1f 0%, #061a0e 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .cover-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 20%, #f9e0a0, #c97e1a);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      transition: opacity 0.8s ease;
+    }
+    .cover-screen h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      background: #1e3a2f;
+      padding: 20px 50px;
+      border-radius: 80px;
+      color: #ffefb9;
+      box-shadow: 0 20px 30px rgba(0,0,0,0.3);
+    }
+    .btn-start-game {
+      background: #f3b33d;
+      border: none;
+      font-weight: bold;
+      font-size: 1.5rem;
+      padding: 15px 50px;
+      border-radius: 60px;
+      margin-top: 30px;
+      cursor: pointer;
+      box-shadow: 0 8px 0 #9b6a1a;
+      transition: transform 0.1s;
+    }
+    .btn-start-game:active { transform: translateY(4px); }
+    .winner-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+    .winner-card {
+      background: linear-gradient(135deg, #f9e0a0, #f3b33d);
+      border-radius: 60px;
+      padding: 40px 60px;
+      text-align: center;
+      animation: bounce 0.5s ease;
+    }
+    .winner-card.draw {
+      background: linear-gradient(135deg, #8e44ad, #6c3483);
+    }
+    @keyframes bounce {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .winner-card h2 { font-size: 3rem; font-weight: 900; }
+    .winner-card.draw h2 { color: #f9e0a0; }
+    .winner-card.draw h3 { color: #ffefb9; }
+    .winner-card .draw-icon { font-size: 4rem; margin: 10px 0; }
+    .btn-restart { background: #2e7d32; color: white; border: none; padding: 12px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 1.2rem; margin-top: 15px; }
+    .winner-list {
+      text-align: left;
+      display: inline-block;
+      margin: 15px 0;
+      font-size: 1.1rem;
+    }
+    .winner-list li {
+      list-style: none;
+      padding: 5px 0;
+    }
+    .game-container {
+      max-width: 1600px;
+      margin: auto;
+      background: #fdf8e7;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 30px 40px rgba(0,0,0,0.5);
+    }
+    .game-header {
+      background: #1e3a2f;
+      padding: 15px 25px;
+    }
+    .monopoly-board {
+      background: #f0e4c8;
+      border-radius: 35px;
+      padding: 20px;
+      box-shadow: inset 0 0 0 8px #c9a87b, 0 15px 25px rgba(0,0,0,0.3);
+    }
+    .board-grid {
+      display: grid;
+      grid-template-columns: 130px 1fr 130px;
+      grid-template-rows: 130px 1fr 130px;
+      gap: 10px;
+      background: #dccfaa;
+      border-radius: 30px;
+      padding: 12px;
+    }
+    .corner-cell {
+      border-radius: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+      font-size: 0.85rem;
+      padding: 10px;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2), 0 5px 10px rgba(0,0,0,0.1);
+    }
+    .corner-cell.start { background: linear-gradient(145deg, #2e7d32, #1b5e20); }
+    .corner-cell.finish { background: linear-gradient(145deg, #f39c12, #e67e22); }
+    .corner-cell.question { background: linear-gradient(145deg, #2980b9, #1a5276); }
+    .horizontal-cells, .vertical-cells { background: #d4bd8a; padding: 8px; border-radius: 20px; }
+    .horizontal-cells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .vertical-cells { display: grid; grid-template-rows: repeat(4, 1fr); gap: 8px; }
+    .board-cell {
+      border-radius: 16px;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background: linear-gradient(145deg, #fff8e0, #fff0c0);
+      border: 2px solid #f3b33d;
+      border-top: 4px solid #f3b33d;
+    }
+    .board-cell:hover { transform: translateY(-5px) scale(1.02); z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    .board-cell.start-cell { background: linear-gradient(145deg, #a5d6a7, #81c784); border: 2px solid #2e7d32; border-top: 4px solid #2e7d32; }
+    .board-cell.finish-cell { background: linear-gradient(145deg, #ffe0b3, #ffcc80); border: 2px solid #f39c12; border-top: 4px solid #f39c12; }
+    .cell-icon { font-size: 1.4rem; margin-bottom: 2px; }
+    .cell-name { font-size: 0.6rem; font-weight: 600; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 20px; display: inline-block; }
+    .soal-number {
+      position: absolute;
+      top: 5px;
+      left: 8px;
+      background: #f3b33d;
+      color: #2c3e2b;
+      font-size: 0.6rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 20px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .pions-container {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .pion {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .board-center {
+      background: linear-gradient(145deg, #f3d382, #eccc68);
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-direction: column;
+      text-align: center;
+      font-size: 0.8rem;
+      padding: 10px;
+      box-shadow: inset 0 0 0 3px #f9e0a0, 0 5px 10px rgba(0,0,0,0.1);
+    }
+    .players-panel {
+      background: linear-gradient(145deg, #2c3e2b, #1e2f1d);
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .player-card {
+      background: linear-gradient(145deg, #fdf8e7, #f5efd6);
+      border-radius: 15px;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 3px solid transparent;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+    .player-card.active-player { border-color: #f3b33d; background: linear-gradient(145deg, #fff3d1, #ffebc4); transform: scale(1.02); }
+    .player-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.4rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .control-panel { background: linear-gradient(145deg, #2c3e2b, #1e2f1d); border-radius: 25px; padding: 15px; color: #f3d382; }
+    .dadu-box {
+      background: linear-gradient(145deg, #ffffff, #f0f0f0);
+      border-radius: 20px;
+      width: 100px;
+      text-align: center;
+      padding: 12px;
+      box-shadow: 0 8px 0 #bbb;
+    }
+    .dadu-icon { font-size: 3rem; }
+    .btn-roll {
+      background: linear-gradient(145deg, #e2a126, #d68910);
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 12px 25px;
+      border-radius: 45px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 5px 0 #9b6a1a;
+    }
+    .btn-roll:active { transform: translateY(3px); box-shadow: 0 2px 0 #9b6a1a; }
+    .card-soal { background: linear-gradient(145deg, #fff7e8, #fff0dc); border-radius: 25px; border-left: 12px solid #f3b33d; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .turn-indicator { background: #f3b33d; color: #2c3e2b; padding: 8px 15px; border-radius: 35px; font-weight: bold; font-size: 0.85rem; }
+    .last-dice { background: #f39c12; border-radius: 25px; padding: 5px 15px; font-size: 0.75rem; color: white; }
+    .rule-badge { background: #e74c3c; color: white; padding: 5px 12px; border-radius: 30px; font-size: 0.65rem; }
+    .notification-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+      padding: 20px 40px;
+      border-radius: 60px;
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-align: center;
+      animation: fadeInOut 1.8s ease forwards;
+      pointer-events: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .notification-benar {
+      background: linear-gradient(145deg, #2ecc71, #27ae60);
+      color: white;
+      border: 3px solid #f9e0a0;
+    }
+    .notification-salah {
+      background: linear-gradient(145deg, #e74c3c, #c0392b);
+      color: white;
+      border: 3px solid #f9e0a0;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      40% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      80% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    }
+    @media (max-width: 1200px) {
+      .board-grid { grid-template-columns: 95px 1fr 95px; grid-template-rows: 95px 1fr 95px; }
+      .board-cell { min-height: 80px; }
+      .cell-icon { font-size: 1.2rem; }
+      .pion { width: 22px; height: 22px; font-size: 10px; }
+      .soal-number { font-size: 0.55rem; top: 3px; left: 5px; padding: 1px 4px; }
+    }
+    @media (max-width: 900px) {
+      .board-grid { grid-template-columns: 70px 1fr 70px; grid-template-rows: 70px 1fr 70px; }
+      .board-cell { font-size: 0.55rem; min-height: 65px; padding: 5px 2px; }
+      .cell-icon { font-size: 1rem; }
+      .pion { width: 18px; height: 18px; font-size: 9px; }
+      .soal-number { font-size: 0.5rem; top: 2px; left: 4px; padding: 1px 3px; }
+      .notification-overlay { font-size: 1.2rem; padding: 12px 25px; }
+    }
+    footer { background: #1e2f1d; color: #f3d382; text-align: center; padding: 10px; font-size: 0.7rem; }
+  </style>
+</head>
+<body>
+
+<div id="coverScreen" class="cover-screen">
+  <h1>🎲 MONOPOLI STATISTIKA 📊</h1>
+  <div class="mt-2 px-4 py-2 bg-dark bg-opacity-50 rounded-pill text-white fw-bold">
+    🎯 20 SOAL | 4 PEMAIN | SEMUA FINISH | SKOR TERTINGGI MENANG
+  </div>
+  <div class="mt-2 small text-white">📚 Materi Lengkap: Data | Investigasi Statistika | Langkah Investigasi | Data Kategorik & Numerik | 3 Diagram</div>
+  <button id="startGameButton" class="btn-start-game"><i class="bi bi-people-fill"></i> Mulai Permainan</button>
+  <div class="mt-3 text-dark fw-semibold bg-warning bg-opacity-75 px-3 py-1 rounded-pill">
+    👩‍🏫 ISNAINI MAULIDIYAH DAMARWATI | NIM 230210101007
+  </div>
+</div>
+
+<div id="mainApp" style="display: none;">
+<div class="game-container">
+  <div class="game-header d-flex justify-content-between align-items-center flex-wrap">
+    <h4 class="text-warning mb-0"><i class="bi bi-dice-6-fill"></i> MONOPOLI STATISTIKA</h4>
+    <div><span class="rule-badge"><i class="bi bi-trophy-fill"></i> SKOR TERTINGGI = PEMENANG | POIN SAMA SEMUA</span></div>
+  </div>
+  <div class="p-3">
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div class="monopoly-board">
+          <div class="board-grid" id="monopolyBoardGrid"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="players-panel">
+          <h6 class="text-white mb-2"><i class="bi bi-people-fill"></i> PEMAIN (Klik untuk ganti giliran)</h6>
+          <div class="row g-2" id="playersList"></div>
+          <div class="mt-2 d-flex justify-content-between align-items-center">
+            <span class="turn-indicator" id="turnIndicator">🎲 Giliran: Pemain 1</span>
+            <span class="last-dice" id="lastDiceInfo">🎲 Dadu: -</span>
+          </div>
+        </div>
+        
+        <div class="card-soal p-3">
+          <div class="d-flex justify-content-between align-items-center border-bottom pb-2 flex-wrap">
+            <h6 class="mb-0"><i class="bi bi-question-octagon-fill"></i> <span id="cardTitle">SOAL STATISTIKA</span></h6>
+            <span id="difficultyBadge" class="badge bg-secondary">(Benar +10 | Salah -5)</span>
+          </div>
+          <div id="questionText" class="mt-2 fw-semibold" style="min-height: 70px; font-size:0.9rem;">Klik petak soal untuk menjawab pertanyaan!</div>
+          <div id="optionsArea" class="mt-2 d-flex flex-wrap gap-2"></div>
+          <button id="answerBtn" class="btn btn-warning mt-2 fw-bold py-1" style="display:none;">Jawab & Dapat Poin</button>
+          <div id="feedbackArea" class="mt-2 small fst-italic"></div>
+          
+          <div class="control-panel mt-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="dadu-box">
+                <div class="dadu-icon" id="daduIcon">⚀</div>
+                <div id="daduValue" class="fw-bold">1</div>
+              </div>
+              <button id="rollDiceBtn" class="btn-roll"><i class="bi bi-dice-6"></i> Lempar Dadu (1-6)</button>
+              <div class="bg-dark bg-opacity-50 rounded-4 px-2 py-1">
+                🎖️ Skor: <strong id="activeSkor" class="fs-6">0</strong>
+              </div>
+            </div>
+            <div id="statusMessage" class="alert alert-info mt-2 py-1 mb-0 small">✨ Giliran Pemain 1. Klik dadu untuk bergerak!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>🏆 ATURAN: Semua pemain harus mencapai FINISH | ✅ Benar: +10 POIN | ❌ Salah: -5 POIN | Pemenang = SKOR TERTINGGI | Jika ada SKOR SAMA = SERI (Pemenang Bersama)</footer>
+</div>
+</div>
+
+<script>
+  // ======================= 20 SOAL STATISTIKA =======================
+  const allTiles = [
+    { id:0, nama:"START", tipe:"start", icon:"🏁", deskripsi:"Titik awal! Lewati START +5 poin" },
+    { id:1, soalNo:1, nama:"Pengertian Data", icon:"📊", 
+      pertanyaan:"Apa yang dimaksud dengan Data?", 
+      opsi:["Kumpulan informasi dari pengamatan sistematis","Alat tulis kantor","Permainan papan","Hiasan dinding"], 
+      jawaban:"Kumpulan informasi dari pengamatan sistematis" },
+    { id:2, soalNo:2, nama:"Investigasi Statistika", icon:"🔍", 
+      pertanyaan:"Apa yang dimaksud dengan Investigasi Statistika?", 
+      opsi:["Hanya mengumpulkan data","Proses pengumpulan data hingga penarikan kesimpulan","Membuat grafik saja","Menghitung mean"], 
+      jawaban:"Proses pengumpulan data hingga penarikan kesimpulan" },
+    { id:3, soalNo:3, nama:"Langkah Pertama", icon:"📋", 
+      pertanyaan:"Langkah PERTAMA dalam investigasi statistika adalah?", 
+      opsi:["Mengumpulkan data","Menganalisis data","Menyusun pertanyaan","Menarik kesimpulan"], 
+      jawaban:"Menyusun pertanyaan" },
+    { id:4, soalNo:4, nama:"Metode Pengumpulan", icon:"📝", 
+      pertanyaan:"Berikut yang termasuk metode pengumpulan data adalah...", 
+      opsi:["Membayangkan","Bermain game","Angket/Wawancara/Observasi/Eksperimen","Tidur"], 
+      jawaban:"Angket/Wawancara/Observasi/Eksperimen" },
+    { id:5, soalNo:5, nama:"Data Kategorik", icon:"🗂️", 
+      pertanyaan:"Contoh data kategorik (kualitatif) adalah...", 
+      opsi:["Tinggi badan 170 cm","Jenis kendaraan (Motor/Mobil)","Berat badan 60 kg","Suhu 30°C"], 
+      jawaban:"Jenis kendaraan (Motor/Mobil)" },
+    { id:6, soalNo:6, nama:"Data Numerik", icon:"🔢", 
+      pertanyaan:"Contoh data numerik (angka) adalah...", 
+      opsi:["Warna favorit","Media sosial","Tinggi badan 165 cm","Jenis tarian"], 
+      jawaban:"Tinggi badan 165 cm" },
+    { id:7, soalNo:7, nama:"Diagram Batang", icon:"📊", 
+      pertanyaan:"Diagram batang paling tepat digunakan untuk...", 
+      opsi:["Menunjukkan perubahan waktu","Membandingkan data antar kategori","Menampilkan persentase","Hubungan korelasi"], 
+      jawaban:"Membandingkan data antar kategori" },
+    { id:8, soalNo:8, nama:"Diagram Lingkaran", icon:"🥧", 
+      pertanyaan:"Diagram lingkaran paling tepat untuk menunjukkan...", 
+      opsi:["Perkembangan penjualan","Perbandingan proporsi/persentase","Fluktuasi harga","Hubungan dua variabel"], 
+      jawaban:"Perbandingan proporsi/persentase" },
+    { id:9, soalNo:9, nama:"Diagram Garis", icon:"📈", 
+      pertanyaan:"Diagram garis paling cocok untuk menunjukkan...", 
+      opsi:["Perbandingan kategori","Tren/perubahan dari waktu ke waktu","Proporsi persentase","Data kategorik"], 
+      jawaban:"Tren/perubahan dari waktu ke waktu" },
+    { id:10, soalNo:10, nama:"Analisis Data", icon:"⚙️", 
+      pertanyaan:"Data hasil pengumpulan selanjutnya diolah dalam bentuk...", 
+      opsi:["Angket","Wawancara","Tabel dan diagram","Kesimpulan"], 
+      jawaban:"Tabel dan diagram" },
+    { id:11, soalNo:11, nama:"Interpretasi Hasil", icon:"📝", 
+      pertanyaan:"Langkah TERAKHIR dalam investigasi statistika adalah?", 
+      opsi:["Mengumpulkan data","Menganalisis data","Interpretasi/Kesimpulan","Membuat pertanyaan"], 
+      jawaban:"Interpretasi/Kesimpulan" },
+    { id:12, soalNo:12, nama:"Manfaat Diagram", icon:"📊", 
+      pertanyaan:"Manfaat diagram dalam statistika adalah...", 
+      opsi:["Membuat data rumit","Menyajikan data secara visual dan mudah dipahami","Mengubah data","Menghapus data"], 
+      jawaban:"Menyajikan data secara visual dan mudah dipahami" },
+    { id:13, soalNo:13, nama:"Data Kualitatif", icon:"🗂️", 
+      pertanyaan:"Contoh data kualitatif adalah...", 
+      opsi:["Tinggi badan","Jumlah siswa","Warna kesukaan","Berat badan"], 
+      jawaban:"Warna kesukaan" },
+    { id:14, soalNo:14, nama:"Observasi", icon:"👁️", 
+      pertanyaan:"Metode pengumpulan data dengan mengamati secara langsung disebut...", 
+      opsi:["Wawancara","Angket","Observasi","Eksperimen"], 
+      jawaban:"Observasi" },
+    { id:15, soalNo:15, nama:"Eksperimen", icon:"🔬", 
+      pertanyaan:"Metode pengumpulan data yang melibatkan percobaan disebut...", 
+      opsi:["Observasi","Wawancara","Angket","Eksperimen"], 
+      jawaban:"Eksperimen" },
+    { id:16, soalNo:16, nama:"Populasi", icon:"👥", 
+      pertanyaan:"Keseluruhan objek yang akan diteliti disebut...", 
+      opsi:["Sampel","Populasi","Data","Variabel"], 
+      jawaban:"Populasi" },
+    { id:17, soalNo:17, nama:"Sampel", icon:"📊", 
+      pertanyaan:"Bagian dari populasi yang mewakili disebut...", 
+      opsi:["Sampel","Populasi","Data","Diagram"], 
+      jawaban:"Sampel" },
+    { id:18, soalNo:18, nama:"Angket", icon:"📋", 
+      pertanyaan:"Metode pengumpulan data menggunakan kuesioner disebut...", 
+      opsi:["Wawancara","Observasi","Angket","Eksperimen"], 
+      jawaban:"Angket" },
+    { id:19, soalNo:19, nama:"Wawancara", icon:"🎙️", 
+      pertanyaan:"Metode pengumpulan data dengan tanya jawab langsung disebut...", 
+      opsi:["Angket","Observasi","Wawancara","Eksperimen"], 
+      jawaban:"Wawancara" },
+    { id:20, soalNo:20, nama:"Statistika Deskriptif", icon:"📈", 
+      pertanyaan:"Cabang statistika yang menggambarkan data apa adanya disebut...", 
+      opsi:["Statistika Inferensia","Statistika Deskriptif","Statistika Parametrik","Statistika Nonparametrik"], 
+      jawaban:"Statistika Deskriptif" },
+    { id:21, nama:"🏆 FINISH", tipe:"finish", icon:"🏆", deskripsi:"GARIS FINISH! Setelah semua pemain finish, pemain dengan skor tertinggi adalah PEMENANG!" }
+  ];
+
+  // Data 4 Pemain
+  let players = [
+    { id:0, nama:"Pemain 1", icon:"🔴", warna:"#e74c3c", posisi:0, skor:0, sudahFinish:false, lastDice: null },
+    { id:1, nama:"Pemain 2", icon:"🔵", warna:"#3498db", posisi:0, skor:0, sudahFinish:false, lastDice: null },
+    { id:2, nama:"Pemain 3", icon:"🟢", warna:"#2ecc71", posisi:0, skor:0, sudahFinish:false, lastDice: null },
+    { id:3, nama:"Pemain 4", icon:"🟠", warna:"#f39c12", posisi:0, skor:0, sudahFinish:false, lastDice: null }
+  ];
+  
+  let currentPlayer = 0;
+  let gameActive = true;
+  let menungguJawaban = false;
+
+  function showNotification(isCorrect, playerName, pointChange, correctAnswer = null) {
+    const notification = document.createElement('div');
+    if (isCorrect) {
+      notification.className = 'notification-overlay notification-benar';
+      notification.innerHTML = `✅ BENAR! ✅<br><span style="font-size:1rem;">${playerName} mendapat +${pointChange} poin!</span>`;
+    } else {
+      notification.className = 'notification-overlay notification-salah';
+      notification.innerHTML = `❌ SALAH! ❌<br><span style="font-size:1rem;">${playerName} kehilangan ${Math.abs(pointChange)} poin!</span><br><span style="font-size:0.8rem;">Jawaban benar: "${correctAnswer}"</span>`;
+    }
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 1800);
+  }
+
+  const boardContainer = document.getElementById("monopolyBoardGrid");
+  const rollBtn = document.getElementById("rollDiceBtn");
+  const daduIconSpan = document.getElementById("daduIcon");
+  const daduValueSpan = document.getElementById("daduValue");
+  const activeSkorSpan = document.getElementById("activeSkor");
+  const statusMsg = document.getElementById("statusMessage");
+  const cardTitle = document.getElementById("cardTitle");
+  const difficultyBadge = document.getElementById("difficultyBadge");
+  const questionTextDiv = document.getElementById("questionText");
+  const optionsArea = document.getElementById("optionsArea");
+  const answerBtn = document.getElementById("answerBtn");
+  const feedbackArea = document.getElementById("feedbackArea");
+  const playersListDiv = document.getElementById("playersList");
+  const turnIndicator = document.getElementById("turnIndicator");
+  const lastDiceInfo = document.getElementById("lastDiceInfo");
+
+  function animateDice(daduValue, callback) {
+    const daduMaps = ["⚀","⚁","⚂","⚃","⚄","⚅"];
+    let count = 0;
+    const interval = setInterval(() => {
+      const randomDadu = Math.floor(Math.random() * 6) + 1;
+      daduIconSpan.innerHTML = daduMaps[randomDadu-1];
+      daduValueSpan.innerText = randomDadu;
+      count++;
+      if (count >= 8) {
+        clearInterval(interval);
+        daduIconSpan.innerHTML = daduMaps[daduValue-1];
+        daduValueSpan.innerText = daduValue;
+        if (callback) callback();
+      }
+    }, 50);
+  }
+
+  function updateUI() {
+    if (!gameActive) return;
+    activeSkorSpan.innerText = players[currentPlayer].skor;
+    turnIndicator.innerHTML = `🎲 Giliran: ${players[currentPlayer].nama} ${players[currentPlayer].icon}`;
+    renderBoard();
+    renderPlayersList();
+  }
+
+  function renderPlayersList() {
+    playersListDiv.innerHTML = players.map((p, idx) => `
+      <div class="col-6 col-md-3">
+        <div class="player-card ${currentPlayer === idx && gameActive ? 'active-player' : ''}" style="cursor:pointer" onclick="if(gameActive && !menungguJawaban && !p.sudahFinish) gantiPemain(${idx})">
+          <div class="d-flex align-items-center gap-2">
+            <div class="player-avatar" style="background:${p.warna}; color:white;">${p.icon}</div>
+            <div class="small">
+              <strong>${p.nama}</strong><br>
+              🎖️${p.skor}<br>
+              🎲${p.posisi}
+              ${p.sudahFinish ? '<span class="badge bg-success text-white mt-1">🏁FINISH</span>' : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.gantiPemain = function(idx) {
+    if (menungguJawaban) { statusMsg.innerHTML = "Selesaikan dulu soal!"; return; }
+    if (players[idx].sudahFinish) { statusMsg.innerHTML = `${players[idx].nama} sudah FINISH!`; return; }
+    currentPlayer = idx;
+    updateUI();
+    statusMsg.innerHTML = `✨ Giliran ${players[currentPlayer].nama}. Klik dadu untuk bergerak!`;
+    feedbackArea.innerHTML = ""; optionsArea.innerHTML = ""; answerBtn.style.display = "none";
+  };
+
+  // Fungsi untuk menampilkan pemenang (termasuk jika SERI)
+  function showFinalWinner() {
+    gameActive = false;
+    rollBtn.disabled = true;
+    
+    // Cari skor tertinggi
+    let highestScore = -999999;
+    for (let p of players) {
+      if (p.skor > highestScore) {
+        highestScore = p.skor;
+      }
+    }
+    
+    // Cari semua pemain dengan skor tertinggi
+    let winners = players.filter(p => p.skor === highestScore);
+    
+    const winnerDiv = document.createElement('div');
+    winnerDiv.className = 'winner-overlay';
+    
+    if (winners.length === 1) {
+      // HANYA SATU PEMENANG (tidak seri)
+      winnerDiv.innerHTML = `
+        <div class="winner-card">
+          <h2>🏆 PEMENANG! 🏆</h2>
+          <div style="font-size:5rem;">${winners[0].icon}</div>
+          <h3>${winners[0].nama}</h3>
+          <p>Skor akhir: ${winners[0].skor} poin</p>
+          <p>🎉 Berhasil meraih SKOR TERTINGGI! 🎉</p>
+          <button class="btn-restart" onclick="location.reload()">🔄 Main Lagi</button>
+        </div>
+      `;
+    } else {
+      // SERI (dua atau lebih pemain memiliki skor yang sama)
+      let winnersList = '';
+      winners.forEach((w, i) => {
+        winnersList += `<li>${w.icon} ${w.nama} - ${w.skor} poin</li>`;
+      });
+      
+      winnerDiv.innerHTML = `
+        <div class="winner-card draw">
+          <h2>🤝 SERI! 🤝</h2>
+          <div class="draw-icon">🏆✨🏆</div>
+          <h3>Pemenang Bersama!</h3>
+          <div class="winner-list">
+            <ul>
+              ${winnersList}
+            </ul>
+          </div>
+          <p>Skor yang sama: ${highestScore} poin</p>
+          <p>🎉 Semua hebat dalam STATISTIKA! 🎉</p>
+          <button class="btn-restart" onclick="location.reload()">🔄 Main Lagi</button>
+        </div>
+      `;
+    }
+    document.body.appendChild(winnerDiv);
+  }
+
+  function checkAllPlayersFinished() {
+    let allFinished = true;
+    for (let p of players) {
+      if (!p.sudahFinish) {
+        allFinished = false;
+        break;
+      }
+    }
+    if (allFinished && gameActive) {
+      statusMsg.innerHTML = "🏆 Semua pemain telah FINISH! Menentukan pemenang berdasarkan poin tertinggi...";
+      setTimeout(() => showFinalWinner(), 1000);
+    }
+  }
+
+  function checkFinish(playerIdx, newPos) {
+    if (players[playerIdx].sudahFinish) return false;
+    if (newPos === 21) {
+      players[playerIdx].sudahFinish = true;
+      players[playerIdx].posisi = 21;
+      updateUI();
+      statusMsg.innerHTML = `🏁 ${players[playerIdx].nama} mencapai FINISH! Menunggu pemain lain finish...`;
+      checkAllPlayersFinished();
+      return true;
+    }
+    return false;
+  }
+
+  function renderBoard() {
+    const topRowIds = [0,1,2,3,4];
+    const rightColIds = [5,6,7,8];
+    const bottomRowIds = [9,10,11,12];
+    const leftColIds = [13,14,15,16];
+    const extraBottomIds = [17,18,19,20];
+    
+    const getPionsInTile = (tileId) => {
+      let pions = [];
+      players.forEach((p, idx) => { if (p.posisi === tileId && !p.sudahFinish) pions.push(`<span class="pion" style="background:${p.warna};" title="${p.nama}">${idx+1}</span>`); });
+      return pions.join('');
+    };
+    
+    const generateCell = (tileId) => {
+      const tile = allTiles[tileId];
+      let cellClass = "";
+      if (tile.tipe === "start") cellClass = "start-cell";
+      else if (tile.tipe === "finish") cellClass = "finish-cell";
+      else cellClass = "";
+      const soalNumber = tile.soalNo ? `<div class="soal-number">${tile.soalNo}</div>` : '';
+      return `<div class="board-cell ${cellClass}" data-id="${tileId}">
+                ${soalNumber}
+                <div class="cell-icon">${tile.icon}</div>
+                <div class="cell-name">${tile.nama.substring(0,14)}</div>
+                <div class="pions-container">${getPionsInTile(tileId)}</div>
+              </div>`;
+    };
+    
+    const finishCorner = `<div class="corner-cell finish">🏆 FINISH<br><span style="font-size:0.6rem;">PETAK 21</span></div>`;
+    const startCorner = `<div class="corner-cell start">🏁 START<br><span style="font-size:0.6rem;">Mulai</span></div>`;
+    const questionCorner = `<div class="corner-cell question">❓ SOAL<br><span style="font-size:0.6rem;">20 Pertanyaan</span></div>`;
+    
+    const html = `
+      ${startCorner}
+      <div class="horizontal-cells">${topRowIds.map(id => generateCell(id)).join('')}</div>
+      ${questionCorner}
+      <div class="vertical-cells">${leftColIds.map(id => generateCell(id)).reverse().join('')}</div>
+      <div class="board-center"><span style="font-size:1.3rem;">❓</span><br>20 SOAL<br>STATISTIKA</div>
+      <div class="vertical-cells">${rightColIds.map(id => generateCell(id)).join('')}</div>
+      ${questionCorner}
+      <div class="horizontal-cells">${bottomRowIds.map(id => generateCell(id)).reverse().join('')}</div>
+      <div class="horizontal-cells" style="grid-column:span 3; margin-top:8px;">${extraBottomIds.map(id => generateCell(id)).join('')}</div>
+      ${finishCorner}
+    `;
+    boardContainer.innerHTML = html;
+    
+    document.querySelectorAll('.board-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const tileId = parseInt(cell.getAttribute('data-id'));
+        if (!isNaN(tileId) && !menungguJawaban && gameActive && allTiles[tileId].tipe !== "start" && allTiles[tileId].tipe !== "finish") {
+          if (!players[currentPlayer].sudahFinish) {
+            tampilkanKontenPetak(tileId);
+          } else {
+            statusMsg.innerHTML = `${players[currentPlayer].nama} sudah FINISH! Tidak bisa menjawab soal lagi.`;
+          }
+        } else if (allTiles[tileId]?.tipe === "start") {
+          statusMsg.innerHTML = "🏁 Ini adalah START. Klik dadu untuk mulai bergerak!";
+        } else if (allTiles[tileId]?.tipe === "finish") {
+          statusMsg.innerHTML = "🏆 Ini adalah FINISH! Siapa yang mencapainya akan finish!";
+        }
+      });
+    });
+  }
+
+  function tampilkanKontenPetak(index) {
+    const tile = allTiles[index];
+    if (!tile || tile.tipe === "start" || tile.tipe === "finish") return;
+    
+    cardTitle.innerText = `SOAL ${tile.soalNo} - ${tile.nama}`;
+    questionTextDiv.innerText = tile.pertanyaan;
+    optionsArea.innerHTML = "";
+    
+    tile.opsi.forEach(ops => {
+      const btn = document.createElement("button");
+      btn.innerText = ops;
+      btn.className = "btn btn-outline-primary btn-sm rounded-pill me-2 mb-2";
+      btn.style.fontSize = "0.75rem";
+      btn.onclick = () => {
+        document.querySelectorAll("#optionsArea .btn").forEach(b => b.classList.remove("btn-primary"));
+        btn.classList.add("btn-primary");
+        answerBtn.setAttribute("data-selected", ops);
+        answerBtn.style.display = "inline-block";
+      };
+      optionsArea.appendChild(btn);
+    });
+    answerBtn.style.display = "none";
+    answerBtn.onclick = () => {
+      if (!gameActive) return;
+      const selected = answerBtn.getAttribute("data-selected");
+      if (!selected) { feedbackArea.innerHTML = "Pilih jawaban dulu!"; return; }
+      if (selected === tile.jawaban) {
+        players[currentPlayer].skor += 10;
+        updateUI();
+        feedbackArea.innerHTML = `✅ BENAR! +10 poin. Total skor: ${players[currentPlayer].skor}`;
+        statusMsg.innerHTML = `🎉 Jawaban tepat! +10 poin. Giliran selesai.`;
+        showNotification(true, players[currentPlayer].nama, 10);
+        menungguJawaban = false;
+        answerBtn.style.display = "none"; optionsArea.innerHTML = "";
+        players[currentPlayer].lastDice = null;
+        nextTurn();
+      } else {
+        players[currentPlayer].skor -= 5;
+        updateUI();
+        feedbackArea.innerHTML = `❌ SALAH! -5 poin! Skor sekarang: ${players[currentPlayer].skor}`;
+        statusMsg.innerHTML = `😞 Jawaban salah! -5 poin. Giliran selesai.`;
+        showNotification(false, players[currentPlayer].nama, 5, tile.jawaban);
+        menungguJawaban = false;
+        answerBtn.style.display = "none"; optionsArea.innerHTML = "";
+        players[currentPlayer].lastDice = null;
+        nextTurn();
+      }
+      answerBtn.removeAttribute("data-selected");
+    };
+    menungguJawaban = true;
+  }
+
+  function nextTurn() {
+    if (!gameActive) return;
+    
+    let allFinished = true;
+    for (let p of players) {
+      if (!p.sudahFinish) {
+        allFinished = false;
+        break;
+      }
+    }
+    if (allFinished) {
+      showFinalWinner();
+      return;
+    }
+    
+    let nextPlayer = (currentPlayer + 1) % 4;
+    while (players[nextPlayer].sudahFinish && nextPlayer !== currentPlayer) {
+      nextPlayer = (nextPlayer + 1) % 4;
+    }
+    currentPlayer = nextPlayer;
+    menungguJawaban = false;
+    updateUI();
+    statusMsg.innerHTML = `✨ Giliran ${players[currentPlayer].nama}. Klik dadu untuk bergerak!`;
+    feedbackArea.innerHTML = ""; optionsArea.innerHTML = ""; answerBtn.style.display = "none";
+  }
+
+  function gerakDadu() {
+    if (!gameActive) return;
+    if (menungguJawaban) {
+      statusMsg.innerHTML = "Selesaikan dulu soal sebelum lempar dadu!";
+      return;
+    }
+    if (players[currentPlayer].sudahFinish) {
+      statusMsg.innerHTML = `${players[currentPlayer].nama} sudah FINISH! Lanjut ke pemain berikutnya.`;
+      nextTurn();
+      return;
+    }
+    
+    const daduMaps = ["⚀","⚁","⚂","⚃","⚄","⚅"];
+    let dadu;
+    let isReroll = false;
+    
+    if (players[currentPlayer].lastDice !== null) {
+      do {
+        dadu = Math.floor(Math.random() * 6) + 1;
+      } while (dadu === players[currentPlayer].lastDice);
+      isReroll = true;
+    } else {
+      dadu = Math.floor(Math.random() * 6) + 1;
+    }
+    
+    animateDice(dadu, () => {
+      players[currentPlayer].lastDice = dadu;
+      lastDiceInfo.innerHTML = `🎲 ${players[currentPlayer].nama}: ${daduMaps[dadu-1]} (${dadu})`;
+      
+      if (isReroll) {
+        statusMsg.innerHTML = `🔄 Angka dadu tidak boleh sama! Lempar ulang mendapatkan ${dadu}`;
+      }
+      
+      let newPos = players[currentPlayer].posisi + dadu;
+      
+      if (newPos >= 21) {
+        newPos = 21;
+        players[currentPlayer].posisi = newPos;
+        updateUI();
+        if (checkFinish(currentPlayer, 21)) return;
+        nextTurn();
+        return;
+      } else {
+        statusMsg.innerHTML = `🎲 ${players[currentPlayer].nama} dadu ${dadu}! Pindah ke ${allTiles[newPos].nama}`;
+      }
+      
+      players[currentPlayer].posisi = newPos;
+      updateUI();
+      
+      if (newPos !== 21 && allTiles[newPos].tipe !== "start" && allTiles[newPos].tipe !== "finish") {
+        tampilkanKontenPetak(newPos);
+      } else {
+        players[currentPlayer].lastDice = null;
+        nextTurn();
+      }
+    });
+  }
+
+  rollBtn.addEventListener("click", gerakDadu);
+  
+  document.getElementById("startGameButton").addEventListener("click", () => {
+    document.getElementById("coverScreen").style.opacity = "0";
+    setTimeout(() => {
+      document.getElementById("coverScreen").style.display = "none";
+      document.getElementById("mainApp").style.display = "block";
+    }, 600);
+    
+    players = [
+      { id:0, nama:"Pemain 1", icon:"🔴", warna:"#e74c3c", posisi:0, skor:0, sudahFinish:false, lastDice: null },
+      { id:1, nama:"Pemain 2", icon:"🔵", warna:"#3498db", posisi:0, skor:0, sudahFinish:false, lastDice: null },
+      { id:2, nama:"Pemain 3", icon:"🟢", warna:"#2ecc71", posisi:0, skor:0, sudahFinish:false, lastDice: null },
+      { id:3, nama:"Pemain 4", icon:"🟠", warna:"#f39c12", posisi:0, skor:0, sudahFinish:false, lastDice: null }
+    ];
+    currentPlayer = 0;
+    gameActive = true;
+    menungguJawaban = false;
+    rollBtn.disabled = false;
+    updateUI();
+    statusMsg.innerHTML = "🎉 Game dimulai! 20 SOAL STATISTIKA | SEMUA PEMAIN HARUS FINISH | ✅ Benar: +10 POIN | ❌ Salah: -5 POIN | 🏆 PEMENANG = SKOR TERTINGGI | Jika skor sama = SERI (Pemenang Bersama)!";
+    tampilkanKontenPetak(0);
+  });
+</script>
+</body>
+</html>
